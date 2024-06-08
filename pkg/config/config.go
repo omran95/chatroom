@@ -18,8 +18,8 @@ type RoomConfig struct {
 }
 
 func applyDefaultValues() {
-	viper.SetDefault("chat.http.server.port", "5001")
-	viper.SetDefault("chat.http.server.maxConn", 200)
+	viper.SetDefault("room.http.server.port", "5001")
+	viper.SetDefault("room.http.server.maxConn", 200)
 }
 
 func NewConfig() (*Config, error) {

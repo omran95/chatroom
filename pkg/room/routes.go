@@ -1,4 +1,4 @@
-package api
+package room
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/omran95/chat-app/pkg/common"
 	"github.com/omran95/chat-app/pkg/config"
-	"github.com/omran95/chat-app/pkg/room"
 	"gopkg.in/olahol/melody.v1"
 )
 
@@ -32,10 +31,10 @@ type HttpServer struct {
 	wsCon       MelodyConn
 	engine      *gin.Engine
 	logger      common.HttpLog
-	roomService room.RoomService
+	roomService RoomService
 }
 
-func NewGinEngine(logger common.HttpLog, config config.Config) *gin.Engine {
+func NewGinEngine(logger common.HttpLog, config *config.Config) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(common.CorsMiddleware())
@@ -44,18 +43,19 @@ func NewGinEngine(logger common.HttpLog, config config.Config) *gin.Engine {
 	return engine
 }
 
-func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config config.Config) *HttpServer {
+func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService) *HttpServer {
 	return &HttpServer{
-		name:   name,
-		logger: logger,
-		engine: engine,
-		wsCon:  ws,
-		port:   config.Room.Http.Server.Port,
+		name:        name,
+		logger:      logger,
+		engine:      engine,
+		wsCon:       ws,
+		port:        config.Room.Http.Server.Port,
+		roomService: roomService,
 	}
 }
 
 func (server *HttpServer) RegisterRoutes() {
-	roomGroup := server.engine.Group("/api/room")
+	roomGroup := server.engine.Group("/api/rooms")
 	{
 		roomGroup.POST("", server.CreateRoom)
 	}

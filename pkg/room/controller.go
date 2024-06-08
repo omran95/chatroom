@@ -1,4 +1,4 @@
-package api
+package room
 
 import (
 	"net/http"
@@ -14,7 +14,9 @@ func (server *HttpServer) CreateRoom(c *gin.Context) {
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
-	c.JSON(http.StatusCreated, struct{}{RoomID roomID})
+	c.JSON(http.StatusCreated, struct {
+		RoomID uint64 `json:"room_id"`
+	}{RoomID: roomID})
 }
 
 func response(c *gin.Context, httpCode int, err error) {
