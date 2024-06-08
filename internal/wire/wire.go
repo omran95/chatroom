@@ -15,6 +15,7 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		config.NewConfig,
 		common.NewHttpLog,
 		common.NewSonyFlake,
+		common.NewObservabilityInjector,
 
 		room.NewRoomService,
 		wire.Bind(new(room.RoomService), new(*room.RoomServiceImpl)),

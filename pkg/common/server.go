@@ -31,15 +31,21 @@ type InfraCloser interface {
 }
 
 type Server struct {
-	name   string
-	router Router
+	name        string
+	router      Router
+	obsInjector *ObservabilityInjector
 }
 
-func NewServer(name string, router Router) *Server {
-	return &Server{name, router}
+func NewServer(name string, router Router, obsInjector *ObservabilityInjector) *Server {
+	return &Server{name, router, obsInjector}
 }
 
 func (s *Server) Serve() {
+	if err := s.obsInjector.Register(s.name); err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+
 	s.router.Run()
 
 	done := make(chan bool, 1)

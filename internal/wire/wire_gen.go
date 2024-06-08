@@ -23,7 +23,7 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	engine := room.NewGinEngine(httpLog, configConfig)
+	engine := room.NewGinEngine(name, httpLog, configConfig)
 	melodyConn := room.NewWebSocketConnection()
 	idGenerator, err := common.NewSonyFlake()
 	if err != nil {
@@ -32,6 +32,7 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 	roomServiceImpl := room.NewRoomService(idGenerator)
 	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl)
 	router := room.NewRouter(httpServer)
-	server := common.NewServer(name, router)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, observabilityInjector)
 	return server, nil
 }

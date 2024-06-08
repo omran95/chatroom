@@ -10,6 +10,10 @@ import (
 	"github.com/omran95/chat-app/pkg/common"
 	"github.com/omran95/chat-app/pkg/config"
 	"gopkg.in/olahol/melody.v1"
+
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	prommiddleware "github.com/slok/go-http-metrics/middleware"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 )
 
 var WsConn MelodyConn
@@ -34,12 +38,18 @@ type HttpServer struct {
 	roomService RoomService
 }
 
-func NewGinEngine(logger common.HttpLog, config *config.Config) *gin.Engine {
+func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(common.CorsMiddleware())
 	engine.Use(common.LoggingMiddleware(logger))
 	engine.Use(common.MaxConnectionsAllowed(config.Room.Http.Server.MaxConn))
+	mdlw := prommiddleware.New(prommiddleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{
+			Prefix: name,
+		}),
+	})
+	engine.Use(ginmiddleware.Handler("", mdlw))
 	return engine
 }
 
@@ -65,7 +75,8 @@ func (server *HttpServer) Run() {
 	go func() {
 		addr := ":" + server.port
 		server.httpServer = &http.Server{
-			Addr: addr,
+			Addr:    addr,
+			Handler: common.NewOtelHttpHandler(server.engine, server.name+"_http"),
 		}
 		server.logger.Info("Room HTTP server listening", slog.String("addr", addr))
 		err := server.httpServer.ListenAndServe()

@@ -5,7 +5,8 @@ import (
 )
 
 type Config struct {
-	Room *RoomConfig `mapstructure:"room"`
+	Room          *RoomConfig          `mapstructure:"room"`
+	Observability *ObservabilityConfig `mapstructure:"observability"`
 }
 
 type RoomConfig struct {
@@ -17,9 +18,21 @@ type RoomConfig struct {
 	}
 }
 
+type ObservabilityConfig struct {
+	Prometheus struct {
+		Port string
+	}
+	Tracing struct {
+		URL string
+	}
+}
+
 func applyDefaultValues() {
-	viper.SetDefault("room.http.server.port", "5001")
-	viper.SetDefault("room.http.server.maxConn", 200)
+	viper.SetDefault("room.http.server.port", "3000")
+	viper.SetDefault("room.http.server.maxConn", 20000)
+	viper.SetDefault("observability.prometheus.port", "8080")
+	viper.SetDefault("observability.Tracing.URL", "http://localhost:5050")
+
 }
 
 func NewConfig() (*Config, error) {
