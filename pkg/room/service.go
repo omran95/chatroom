@@ -7,24 +7,26 @@ import (
 	"github.com/omran95/chat-app/pkg/common"
 )
 
-type RoomID = uint64
-
 type RoomService interface {
-	CreateRoom(ctx context.Context) (RoomID, error)
+	CreateRoom(ctx context.Context) (Room, error)
 }
 
 type RoomServiceImpl struct {
 	snowFlake common.IDGenerator
+	roomRepo  RoomRepo
 }
 
-func NewRoomService(snowflake common.IDGenerator) *RoomServiceImpl {
-	return &RoomServiceImpl{snowflake}
+func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo) *RoomServiceImpl {
+	return &RoomServiceImpl{snowflake, roomRepo}
 }
 
-func (service *RoomServiceImpl) CreateRoom(ctx context.Context) (RoomID, error) {
+func (service *RoomServiceImpl) CreateRoom(ctx context.Context) (Room, error) {
 	roomID, err := service.snowFlake.NextID()
 	if err != nil {
-		return 0, fmt.Errorf("error create snowflake ID for new room: %w", err)
+		return Room{}, fmt.Errorf("error create snowflake ID for new room: %w", err)
 	}
-	return roomID, nil
+	if err := service.roomRepo.CreateRoom(ctx, roomID); err != nil {
+		return Room{}, fmt.Errorf("error creating room: %w", err)
+	}
+	return Room{ID: roomID}, nil
 }

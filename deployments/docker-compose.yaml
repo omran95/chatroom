@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  cassandra:
+    image: docker.io/bitnami/cassandra:latest
+    restart: always
+    ports:
+      - 9042:9042
+    volumes:
+      - cassandra_data:/bitnami
+      - ./room/cassandra:/docker-entrypoint-initdb.d
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_USER=billy
+      - CASSANDRA_PASSWORD=p@ssword
+  
+volumes:
+  cassandra_data:

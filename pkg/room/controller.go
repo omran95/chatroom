@@ -8,15 +8,13 @@ import (
 )
 
 func (server *HttpServer) CreateRoom(c *gin.Context) {
-	roomID, err := server.roomService.CreateRoom(c)
+	room, err := server.roomService.CreateRoom(c)
 	if err != nil {
 		server.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
-	c.JSON(http.StatusCreated, struct {
-		RoomID uint64 `json:"room_id"`
-	}{RoomID: roomID})
+	c.JSON(http.StatusCreated, room)
 }
 
 func response(c *gin.Context, httpCode int, err error) {

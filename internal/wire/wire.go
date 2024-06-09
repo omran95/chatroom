@@ -7,6 +7,7 @@ import (
 	"github.com/google/wire"
 	"github.com/omran95/chat-app/pkg/common"
 	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chat-app/pkg/infrastructure"
 	"github.com/omran95/chat-app/pkg/room"
 )
 
@@ -16,9 +17,13 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		common.NewHttpLog,
 		common.NewSonyFlake,
 		common.NewObservabilityInjector,
+		infrastructure.NewCassandraSession,
 
 		room.NewRoomService,
 		wire.Bind(new(room.RoomService), new(*room.RoomServiceImpl)),
+
+		room.NewRoomRepo,
+		wire.Bind(new(room.RoomRepo), new(*room.RoomRepoImpl)),
 
 		room.NewWebSocketConnection,
 

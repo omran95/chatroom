@@ -9,6 +9,7 @@ package wire
 import (
 	"github.com/omran95/chat-app/pkg/common"
 	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chat-app/pkg/infrastructure"
 	"github.com/omran95/chat-app/pkg/room"
 )
 
@@ -29,7 +30,12 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	roomServiceImpl := room.NewRoomService(idGenerator)
+	session, err := infrastructure.NewCassandraSession(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	roomRepoImpl := room.NewRoomRepo(session)
+	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl)
 	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl)
 	router := room.NewRouter(httpServer)
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

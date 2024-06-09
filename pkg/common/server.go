@@ -67,7 +67,12 @@ func (s *Server) GracefulStop(ctx context.Context, done chan bool) {
 	if err != nil {
 		slog.Error(err.Error())
 	}
-
+	if TracerProvider != nil {
+		err = TracerProvider.Shutdown(ctx)
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	}
 	slog.Info("gracefully shutdowned")
 	done <- true
 }

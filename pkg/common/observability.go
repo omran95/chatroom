@@ -87,12 +87,15 @@ func NewOtelHttpHandler(h http.Handler, operation string) http.Handler {
 
 func initTracerProvider(optlTracerUrl, service string) error {
 	exp, err := otlptracehttp.New(context.Background(),
-		otlptracehttp.WithEndpoint(optlTracerUrl))
+		otlptracehttp.WithEndpoint(optlTracerUrl),
+		otlptracehttp.WithInsecure(),
+	)
 	if err != nil {
 		return err
 	}
+	fmt.Print(service)
 	TracerProvider = tracesdk.NewTracerProvider(
-		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(0.0001))),
+		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(0.001))),
 		// Always be sure to batch in production.
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in a Resource.
