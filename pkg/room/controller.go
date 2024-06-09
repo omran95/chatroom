@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/omran95/chat-app/pkg/common"
@@ -51,29 +52,30 @@ func (server *HttpServer) JoinRoom(c *gin.Context) {
 }
 
 func (server *HttpServer) HandleRoomOnJoin(wsSession *melody.Session) {
-	roomID, _ := strconv.ParseUint(wsSession.Request.PathValue("id"), 10, 64)
 	userName := wsSession.Request.URL.Query().Get("userName")
-	// err := server.initializeChatSession(wsSession, roomID, userName)
+	// path e.g. /api/rooms/:roomID
+	pathParts := strings.Split(wsSession.Request.URL.Path, "/")
+	roomID, _ := strconv.ParseUint(pathParts[len(pathParts)-1], 10, 64)
 
-	// if err != nil {
-	// 	server.logger.Error(err.Error())
-	// 	return
-	// }
-
+	err := server.initializeChatSession(wsSession, roomID, userName)
+	if err != nil {
+		server.logger.Error(err.Error())
+		return
+	}
 	if err := server.roomService.BroadcastConnectMessage(context.Background(), roomID, userName); err != nil {
 		server.logger.Error(err.Error())
 		return
 	}
 }
 
-// func (r *HttpServer) initializeChatSession(sess *melody.Session, roomID RoomID, userName string) error {
-// 	ctx := context.Background()
-// 	if err := r.forwardSvc.RegisterChannelSession(ctx, channelID, userID, r.msgSubscriber.subscriberID); err != nil {
-// 		return err
-// 	}
-// 	sess.Set(sessRidKey, roomID)
-// 	return nil
-// }
+func (server *HttpServer) initializeChatSession(sess *melody.Session, roomID RoomID, userName string) error {
+	ctx := context.Background()
+	if err := server.roomService.AddRoomSubscriber(ctx, roomID, userName, server.msgSubscriber.topic); err != nil {
+		return err
+	}
+	sess.Set(sessRidKey, roomID)
+	return nil
+}
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()

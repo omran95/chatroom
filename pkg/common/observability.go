@@ -93,7 +93,7 @@ func initTracerProvider(optlTracerUrl, service string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print(service)
+
 	TracerProvider = tracesdk.NewTracerProvider(
 		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(0.001))),
 		// Always be sure to batch in production.

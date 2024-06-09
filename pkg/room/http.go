@@ -29,13 +29,14 @@ func NewWebSocketConnection() MelodyConn {
 }
 
 type HttpServer struct {
-	port        string
-	name        string
-	httpServer  *http.Server
-	wsCon       MelodyConn
-	engine      *gin.Engine
-	logger      common.HttpLog
-	roomService RoomService
+	port          string
+	name          string
+	httpServer    *http.Server
+	wsCon         MelodyConn
+	engine        *gin.Engine
+	logger        common.HttpLog
+	roomService   RoomService
+	msgSubscriber *MessageSubscriber
 }
 
 func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gin.Engine {
@@ -53,14 +54,15 @@ func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gi
 	return engine
 }
 
-func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService) *HttpServer {
+func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService, msgSubscriber *MessageSubscriber) *HttpServer {
 	return &HttpServer{
-		name:        name,
-		logger:      logger,
-		engine:      engine,
-		wsCon:       ws,
-		port:        config.Room.Http.Server.Port,
-		roomService: roomService,
+		name:          name,
+		logger:        logger,
+		engine:        engine,
+		wsCon:         ws,
+		port:          config.Room.Http.Server.Port,
+		roomService:   roomService,
+		msgSubscriber: msgSubscriber,
 	}
 }
 
@@ -87,6 +89,13 @@ func (server *HttpServer) Run() {
 			os.Exit(1)
 		}
 	}()
+	go func() {
+		err := server.msgSubscriber.Run()
+		if err != nil {
+			server.logger.Error(err.Error())
+			os.Exit(1)
+		}
+	}()
 }
 
 func (server *HttpServer) GracefulStop(ctx context.Context) error {
@@ -95,6 +104,10 @@ func (server *HttpServer) GracefulStop(ctx context.Context) error {
 		return err
 	}
 	err = server.httpServer.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+	err = server.msgSubscriber.GracefulStop()
 	if err != nil {
 		return err
 	}

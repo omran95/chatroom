@@ -19,20 +19,23 @@ type GrpcServer struct {
 	logger            common.GrpcLog
 	server            *grpc.Server
 	subscriberService SubscriberService
+	msgSubscriber     *MessageSubscriber
 	subscriberpb.UnimplementedSubscriberServiceServer
 }
 
-func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config, subscriberService SubscriberService) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config, subscriberService SubscriberService, msgSubscriber *MessageSubscriber) *GrpcServer {
 	grpc := &GrpcServer{
 		port:              config.Subscriber.Grpc.Server.Port,
 		logger:            logger,
 		subscriberService: subscriberService,
+		msgSubscriber:     msgSubscriber,
 	}
 	grpc.server = infrastructure.InitializeGrpcServer(name, grpc.logger)
 	return grpc
 }
 
 func (grpc *GrpcServer) Register() {
+	grpc.msgSubscriber.RegisterHandler()
 	subscriberpb.RegisterSubscriberServiceServer(grpc.server, grpc)
 }
 
@@ -51,16 +54,15 @@ func (grpc *GrpcServer) Run() {
 		}
 	}()
 	go func() {
-		// err := grpc.msgSubscriber.Run()
-		// if err != nil {
-		// 	srv.logger.Error(err.Error())
-		// 	os.Exit(1)
-		// }
+		err := grpc.msgSubscriber.Run()
+		if err != nil {
+			grpc.logger.Error(err.Error())
+			os.Exit(1)
+		}
 	}()
 }
 
 func (grpc *GrpcServer) GracefulStop() error {
 	grpc.server.GracefulStop()
-	return nil
-	// return srv.msgSubscriber.GracefulStop()
+	return grpc.msgSubscriber.GracefulStop()
 }

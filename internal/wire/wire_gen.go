@@ -11,6 +11,7 @@ import (
 	"github.com/omran95/chat-app/pkg/config"
 	"github.com/omran95/chat-app/pkg/infrastructure"
 	"github.com/omran95/chat-app/pkg/room"
+	"github.com/omran95/chat-app/pkg/subscriber"
 )
 
 // Injectors from wire.go:
@@ -40,10 +41,66 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	messagePublisherImpl := room.NewMessagePublisher(publisher)
-	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl, messagePublisherImpl)
-	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl)
-	router := room.NewRouter(httpServer)
+	subscriberGrpcClient, err := room.NewSubscriberGrpcClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl, messagePublisherImpl, subscriberGrpcClient)
+	router, err := infrastructure.NewBrokerRouter(name)
+	if err != nil {
+		return nil, err
+	}
+	subscriber, err := infrastructure.NewKafkaSubscriber(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	messageSubscriber, err := room.NewMessageSubscriber(router, configConfig, subscriber, melodyConn)
+	if err != nil {
+		return nil, err
+	}
+	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl, messageSubscriber)
+	roomRouter := room.NewRouter(httpServer)
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, router, observabilityInjector)
+	server := common.NewServer(name, roomRouter, observabilityInjector)
+	return server, nil
+}
+
+func InitializeSubscriberServer(name string) (*common.Server, error) {
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	grpcLog, err := common.NewGrpcLog(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	universalClient, err := infrastructure.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	redisCacheImpl := infrastructure.NewRedisCacheImpl(universalClient)
+	subscriberRepoImpl := subscriber.NewSubscriberRepo(redisCacheImpl)
+	publisher, err := infrastructure.NewKafkaPublisher(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	messagePublisherImpl := subscriber.NewMessagePublisher(publisher)
+	subscriberServiceImpl := subscriber.NewSubscriberService(subscriberRepoImpl, messagePublisherImpl)
+	router, err := infrastructure.NewBrokerRouter(name)
+	if err != nil {
+		return nil, err
+	}
+	messageSubscriber, err := infrastructure.NewKafkaSubscriber(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	subscriberMessageSubscriber, err := subscriber.NewMessageSubscriber(router, messageSubscriber, subscriberServiceImpl)
+	if err != nil {
+		return nil, err
+	}
+	grpcServer := subscriber.NewGrpcServer(name, grpcLog, configConfig, subscriberServiceImpl, subscriberMessageSubscriber)
+	subscriberRouter := subscriber.NewRouter(grpcServer)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, subscriberRouter, observabilityInjector)
 	return server, nil
 }

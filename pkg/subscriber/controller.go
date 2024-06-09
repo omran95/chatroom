@@ -7,7 +7,7 @@ import (
 )
 
 func (grpc *GrpcServer) AddRoomSubscriber(ctx context.Context, req *subscriberpb.AddRoomSubscriberRequest) (*subscriberpb.AddRoomSubscriberResponse, error) {
-	err := grpc.subscriberService.AddRoomSubscriber(ctx, req.RoomId, req.Username, req.Subscriber)
+	err := grpc.subscriberService.AddRoomSubscriber(ctx, req.RoomId, req.Username, req.SubscriberTopic)
 	if err != nil {
 		grpc.logger.Error(err.Error())
 		return nil, err

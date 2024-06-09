@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"github.com/spf13/viper"
 )
 
@@ -18,6 +20,14 @@ type RoomConfig struct {
 		Server struct {
 			Port    string
 			MaxConn int64
+		}
+	}
+	MessageSubscriber struct {
+		Topic string
+	}
+	Grpc struct {
+		Client struct {
+			SubscriberEndpoint string
 		}
 	}
 }
@@ -65,6 +75,8 @@ type ObservabilityConfig struct {
 func applyDefaultValues() {
 	viper.SetDefault("room.http.server.port", "3000")
 	viper.SetDefault("room.http.server.maxConn", 20000)
+	viper.SetDefault("room.messageSubscriber.topic", "room.msg.subscriber"+os.Getenv("HOSTNAME"))
+	viper.SetDefault("room.grpc.client.subscriberEndpoint", "localhost:5000")
 
 	viper.SetDefault("subscriber.grpc.server.port", "5000")
 
@@ -75,7 +87,7 @@ func applyDefaultValues() {
 	viper.SetDefault("cassandra.keyspace", "chatroom")
 
 	viper.SetDefault("redis.password", "redis_cluster_password")
-	viper.SetDefault("redis.addrs", "localhost:6379")
+	viper.SetDefault("redis.addrs", "localhost:6379,localhost:6380,localhost:6381,localhost:6382,localhost:6383")
 	viper.SetDefault("redis.expirationHour", 24)
 	viper.SetDefault("redis.minIdleConn", 16)
 	viper.SetDefault("redis.poolSize", 64)
@@ -85,7 +97,7 @@ func applyDefaultValues() {
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")
 
-	viper.SetDefault("observability.prometheus.port", "8080")
+	viper.SetDefault("observability.prometheus.port", "")
 	viper.SetDefault("observability.Tracing.URL", "localhost:4318")
 
 }
