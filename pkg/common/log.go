@@ -38,3 +38,15 @@ func NewHttpLog(config *config.Config) (HttpLog, error) {
 
 	return HttpLog{logger}, nil
 }
+
+func NewGrpcLog(config *config.Config) (GrpcLog, error) {
+	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelError,
+		AddSource: false,
+	}).WithAttrs([]slog.Attr{
+		slog.String("proto", "grpc"),
+	})
+	logger := slog.New(logHandler)
+
+	return GrpcLog{logger}, nil
+}

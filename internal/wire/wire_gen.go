@@ -35,7 +35,12 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	roomRepoImpl := room.NewRoomRepo(session)
-	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl)
+	publisher, err := infrastructure.NewKafkaPublisher(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	messagePublisherImpl := room.NewMessagePublisher(publisher)
+	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl, messagePublisherImpl)
 	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl)
 	router := room.NewRouter(httpServer)
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

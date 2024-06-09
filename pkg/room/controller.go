@@ -1,11 +1,16 @@
 package room
 
 import (
+	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/omran95/chat-app/pkg/common"
+	"gopkg.in/olahol/melody.v1"
 )
+
+var sessRidKey = "sessRid"
 
 func (server *HttpServer) CreateRoom(c *gin.Context) {
 	room, err := server.roomService.CreateRoom(c)
@@ -16,6 +21,59 @@ func (server *HttpServer) CreateRoom(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, room)
 }
+
+func (server *HttpServer) JoinRoom(c *gin.Context) {
+	roomID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	userName := c.Query("userName")
+
+	if err != nil || userName == "" {
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+	exist, err := server.roomService.RoomExist(c, roomID)
+
+	if err != nil {
+		server.logger.Error(err.Error())
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+
+	if !exist {
+		response(c, http.StatusNotFound, common.ErrRoomNotFound)
+		return
+	}
+
+	if err := server.wsCon.HandleRequest(c.Writer, c.Request); err != nil {
+		server.logger.Error("upgrade websocket error: " + err.Error())
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
+}
+
+func (server *HttpServer) HandleRoomOnJoin(wsSession *melody.Session) {
+	roomID, _ := strconv.ParseUint(wsSession.Request.PathValue("id"), 10, 64)
+	userName := wsSession.Request.URL.Query().Get("userName")
+	// err := server.initializeChatSession(wsSession, roomID, userName)
+
+	// if err != nil {
+	// 	server.logger.Error(err.Error())
+	// 	return
+	// }
+
+	if err := server.roomService.BroadcastConnectMessage(context.Background(), roomID, userName); err != nil {
+		server.logger.Error(err.Error())
+		return
+	}
+}
+
+// func (r *HttpServer) initializeChatSession(sess *melody.Session, roomID RoomID, userName string) error {
+// 	ctx := context.Background()
+// 	if err := r.forwardSvc.RegisterChannelSession(ctx, channelID, userID, r.msgSubscriber.subscriberID); err != nil {
+// 		return err
+// 	}
+// 	sess.Set(sessRidKey, roomID)
+// 	return nil
+// }
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()

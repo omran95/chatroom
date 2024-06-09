@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "pkg/subscriber/proto/subscriber;proto";
+
+message AddRoomSubscriberRequest {
+    uint64 room_id = 1;
+    string username = 2;
+    string subscriber = 3;
+}
+
+message AddRoomSubscriberResponse {
+}
+
+message RemoveRoomSubscriberRequest {
+    uint64 room_id = 1;
+    string username = 2;
+}
+
+message RemoveRoomSubscriberResponse {
+}
+
+service SubscriberService {
+    rpc AddRoomSubscriber (AddRoomSubscriberRequest) returns (AddRoomSubscriberResponse) {};
+    rpc RemoveRoomSubscriber (RemoveRoomSubscriberRequest) returns (RemoveRoomSubscriberResponse) {};
+}

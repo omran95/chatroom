@@ -19,6 +19,11 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		common.NewObservabilityInjector,
 		infrastructure.NewCassandraSession,
 
+		infrastructure.NewKafkaPublisher,
+
+		room.NewMessagePublisher,
+		wire.Bind(new(room.MessagePublisher), new(*room.MessagePublisherImpl)),
+
 		room.NewRoomService,
 		wire.Bind(new(room.RoomService), new(*room.RoomServiceImpl)),
 

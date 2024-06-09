@@ -68,7 +68,9 @@ func (server *HttpServer) RegisterRoutes() {
 	roomGroup := server.engine.Group("/api/rooms")
 	{
 		roomGroup.POST("", server.CreateRoom)
+		roomGroup.GET("/:id", server.JoinRoom)
 	}
+	server.wsCon.HandleConnect(server.HandleRoomOnJoin)
 }
 
 func (server *HttpServer) Run() {
