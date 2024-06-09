@@ -7,7 +7,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
-var MessagePubTopic = "rc.msg.pub"
+var MessagePubTopic = "chat.msg.pub"
 
 type MessagePublisher interface {
 	PublishMessage(ctx context.Context, message *Message) error

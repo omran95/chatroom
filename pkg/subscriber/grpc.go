@@ -15,16 +15,18 @@ import (
 )
 
 type GrpcServer struct {
-	port   string
-	logger common.GrpcLog
-	server *grpc.Server
+	port              string
+	logger            common.GrpcLog
+	server            *grpc.Server
+	subscriberService SubscriberService
 	subscriberpb.UnimplementedSubscriberServiceServer
 }
 
-func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config, subscriberService SubscriberService) *GrpcServer {
 	grpc := &GrpcServer{
-		port:   config.Subscriber.Grpc.Server.Port,
-		logger: logger,
+		port:              config.Subscriber.Grpc.Server.Port,
+		logger:            logger,
+		subscriberService: subscriberService,
 	}
 	grpc.server = infrastructure.InitializeGrpcServer(name, grpc.logger)
 	return grpc
