@@ -13,6 +13,41 @@ services:
       - CASSANDRA_PASSWORD_SEEDER=yes
       - CASSANDRA_USER=billy
       - CASSANDRA_PASSWORD=p@ssword
-  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181   
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    restart: unless-stopped
+    environment:
+      KAFKA_LOG_RETENTION_MINUTES: 1440 # 24hrs
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"  
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    restart: always
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command: 
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --enable-feature=exemplar-storage
+    ports:
+      - 9090:9090
+  jaeger:
+    image: jaegertracing/all-in-one:1.22
+    restart: always
+    ports:
+      - 14268:14268
+      - 16686:16686
+      
 volumes:
   cassandra_data:
