@@ -11,6 +11,7 @@ CREATE TABLE messages (
     id varint,
     event int,
     room_id varint,
+    username text,
     payload text,
     seen boolean,
     timestamp timestamp,

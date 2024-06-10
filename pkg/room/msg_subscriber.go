@@ -2,7 +2,6 @@ package room
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/omran95/chat-app/pkg/config"
@@ -59,12 +58,4 @@ func (subscriber *MessageSubscriber) broadcast(message *Message) error {
 		}
 		return message.RoomID == (roomID.(uint64))
 	})
-}
-
-func decodeToMessage(data []byte) (*Message, error) {
-	var msg Message
-	if err := json.Unmarshal(data, &msg); err != nil {
-		return nil, err
-	}
-	return &msg, nil
 }

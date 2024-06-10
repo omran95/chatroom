@@ -32,6 +32,9 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		room.NewRoomRepo,
 		wire.Bind(new(room.RoomRepo), new(*room.RoomRepoImpl)),
 
+		room.NewMessageRepo,
+		wire.Bind(new(room.MessageRepo), new(*room.MessageRepoImpl)),
+
 		room.NewWebSocketConnection,
 
 		room.NewGinEngine,

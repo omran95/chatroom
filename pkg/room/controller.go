@@ -69,7 +69,7 @@ func (server *HttpServer) HandleRoomOnJoin(wsSession *melody.Session) {
 	roomID, userName := extractWsParams(wsSession)
 	isProtectedRoom, err := server.roomService.IsRoomProtected(ctx, roomID)
 	if err != nil {
-		wsSession.CloseWithMsg([]byte("Error checking if the room is protected: " + err.Error()))
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(500, "Error checking if the room is protected: "+err.Error()))
 		return
 	}
 	if !isProtectedRoom {
@@ -78,7 +78,8 @@ func (server *HttpServer) HandleRoomOnJoin(wsSession *melody.Session) {
 	}
 	err = server.sendAuthRequiredMessage(wsSession)
 	if err != nil {
-		wsSession.CloseWithMsg([]byte("Error: " + err.Error()))
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(500, "Error: "+err.Error()))
+		return
 	}
 }
 
@@ -102,7 +103,18 @@ func (server *HttpServer) HandleOnMessage(wsSession *melody.Session, msg []byte)
 		server.AuthenticateRoom(wsSession, roomID, userName, msg)
 		return
 	}
-	// handle message
+	decodedMsg, err := decodeToMessage(msg)
+	if err != nil {
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(400, "Invalid message"))
+		return
+	}
+	decodedMsg.RoomID = roomID
+	decodedMsg.UserName = userName
+	err = server.roomService.HandleNewMessage(context.Background(), *decodedMsg)
+
+	if err != nil {
+		server.logger.Error(err.Error())
+	}
 }
 
 func (server *HttpServer) roomAuthRequired(wsSession *melody.Session) bool {
@@ -112,24 +124,19 @@ func (server *HttpServer) roomAuthRequired(wsSession *melody.Session) bool {
 
 func (server *HttpServer) AuthenticateRoom(wsSession *melody.Session, roomID RoomID, userName string, msg []byte) {
 	password, err := extractPassword(msg)
+
 	if err != nil || password == "" {
-		err := server.sendAuthRequiredMessage(wsSession)
-		if err != nil {
-			wsSession.CloseWithMsg([]byte("Error: " + err.Error()))
-		}
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(400, "Invalid password"))
+		return
+
 	}
 	validPassword, err := server.roomService.IsValidPassword(context.Background(), roomID, password)
 	if err != nil {
-		wsSession.CloseWithMsg([]byte("Error: " + err.Error()))
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(500, "Error: "+err.Error()))
 		return
 	}
 	if !validPassword {
-		err := server.sendInvalidPasswordMessage(wsSession)
-		if err != nil {
-			wsSession.CloseWithMsg([]byte("Error: " + err.Error()))
-			return
-		}
-		wsSession.Close()
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(400, "Invalid password"))
 		return
 	}
 	server.joinRoom(wsSession, roomID, userName)
@@ -137,10 +144,6 @@ func (server *HttpServer) AuthenticateRoom(wsSession *melody.Session, roomID Roo
 
 func (server *HttpServer) sendAuthRequiredMessage(wsSession *melody.Session) error {
 	return wsSession.Write([]byte("This room is protected, please enter the password"))
-}
-
-func (server *HttpServer) sendInvalidPasswordMessage(wsSession *melody.Session) error {
-	return wsSession.Write([]byte("Invalid password"))
 }
 
 func (server *HttpServer) joinRoom(wsSession *melody.Session, roomID RoomID, userName string) {

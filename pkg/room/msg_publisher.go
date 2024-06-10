@@ -10,7 +10,7 @@ import (
 var MessagePubTopic = "chat.msg.pub"
 
 type MessagePublisher interface {
-	PublishMessage(ctx context.Context, message *Message) error
+	PublishMessage(ctx context.Context, message Message) error
 }
 
 type MessagePublisherImpl struct {
@@ -21,7 +21,7 @@ func NewMessagePublisher(publisher message.Publisher) *MessagePublisherImpl {
 	return &MessagePublisherImpl{publisher}
 }
 
-func (msgPub *MessagePublisherImpl) PublishMessage(ctx context.Context, msg *Message) error {
+func (msgPub *MessagePublisherImpl) PublishMessage(ctx context.Context, msg Message) error {
 	return msgPub.publisher.Publish(MessagePubTopic, message.NewMessage(
 		watermill.NewUUID(),
 		msg.Encode(),
