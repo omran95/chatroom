@@ -12,8 +12,10 @@ import (
 )
 
 type RoomService interface {
-	CreateRoom(ctx context.Context) (Room, error)
+	CreateRoom(ctx context.Context, dto CreateRoomDTO) (*RoomPresenter, error)
 	RoomExist(ctx context.Context, roomID RoomID) (bool, error)
+	IsRoomProtected(ctx context.Context, roomID RoomID) (bool, error)
+	IsValidPassword(ctx context.Context, roomID RoomID, password string) (bool, error)
 	BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error
 	BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error
 	AddRoomSubscriber(ctx context.Context, roomID RoomID, userName string, subscriberTopic string) error
@@ -35,15 +37,17 @@ func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo, messagePubl
 	return &RoomServiceImpl{snowflake, roomRepo, messagePublisher, AddRoomSubscriberEndpoint, RemoveRoomSubscriberEndpoint}
 }
 
-func (service *RoomServiceImpl) CreateRoom(ctx context.Context) (Room, error) {
+func (service *RoomServiceImpl) CreateRoom(ctx context.Context, dto CreateRoomDTO) (*RoomPresenter, error) {
 	roomID, err := service.snowFlake.NextID()
 	if err != nil {
-		return Room{}, fmt.Errorf("error create snowflake ID for new room: %w", err)
+		return nil, fmt.Errorf("error create snowflake ID for new room: %w", err)
 	}
-	if err := service.roomRepo.CreateRoom(ctx, roomID); err != nil {
-		return Room{}, fmt.Errorf("error creating room: %w", err)
+	room := &Room{ID: roomID}
+	room.FromDTO(dto)
+	if err := service.roomRepo.CreateRoom(ctx, *room); err != nil {
+		return nil, fmt.Errorf("error creating room: %w", err)
 	}
-	return Room{ID: roomID}, nil
+	return room.ToPresenter(), nil
 }
 
 func (service *RoomServiceImpl) RoomExist(ctx context.Context, roomID RoomID) (bool, error) {
@@ -52,6 +56,22 @@ func (service *RoomServiceImpl) RoomExist(ctx context.Context, roomID RoomID) (b
 		return false, fmt.Errorf("error checking room existence: %w", err)
 	}
 	return room, nil
+}
+
+func (service *RoomServiceImpl) IsRoomProtected(ctx context.Context, roomID RoomID) (bool, error) {
+	protected, err := service.roomRepo.IsProtected(ctx, roomID)
+	if err != nil {
+		return false, fmt.Errorf("error checking room protection: %w", err)
+	}
+	return protected, nil
+}
+
+func (service *RoomServiceImpl) IsValidPassword(ctx context.Context, roomID RoomID, password string) (bool, error) {
+	valid, err := service.roomRepo.IsValidPassword(ctx, roomID, password)
+	if err != nil {
+		return false, fmt.Errorf("error validating room passowrd: %w", err)
+	}
+	return valid, nil
 }
 
 func (service *RoomServiceImpl) BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error {
