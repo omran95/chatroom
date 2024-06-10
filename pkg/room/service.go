@@ -136,7 +136,6 @@ func (service *RoomServiceImpl) RemoveRoomSubscriber(ctx context.Context, roomID
 }
 
 func hashPassword(password string) (string, error) {
-	fmt.Println(password)
 	// Generate a bcrypt hash of the password with a cost of 10
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
