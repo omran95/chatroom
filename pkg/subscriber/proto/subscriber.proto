@@ -7,7 +7,7 @@ option go_package = "pkg/subscriber/proto/subscriber;proto";
 message AddRoomSubscriberRequest {
     uint64 room_id = 1;
     string username = 2;
-    string subscriber = 3;
+    string subscriberTopic = 3;
 }
 
 message AddRoomSubscriberResponse {

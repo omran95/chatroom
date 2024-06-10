@@ -13,6 +13,80 @@ services:
       - CASSANDRA_PASSWORD_SEEDER=yes
       - CASSANDRA_USER=billy
       - CASSANDRA_PASSWORD=p@ssword
+  redis-node-0:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-cluster_data-0:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-1:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6380:6380
+    volumes:
+      - redis-cluster_data-1:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-2:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6381:6381
+    volumes:
+      - redis-cluster_data-2:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-3:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6382:6382
+    volumes:
+      - redis-cluster_data-3:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-4:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6383:6383
+    volumes:
+      - redis-cluster_data-4:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-5:
+    image: docker.io/bitnami/redis-cluster:7.0
+    restart: always
+    ports:
+      - 6384:6384
+    volumes:
+      - redis-cluster_data-5:/bitnami/redis/data
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+    environment:
+      - 'REDIS_PASSWORD=redis_cluster_password'
+      - 'REDISCLI_AUTH=redis_cluster_password'
+      - 'REDIS_CLUSTER_REPLICAS=1'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+      - 'REDIS_CLUSTER_CREATOR=yes'    
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     restart: unless-stopped
@@ -21,17 +95,17 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest
     restart: unless-stopped
+    ports:
+      - "9092:9092"  
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"  
   prometheus:
     image: prom/prometheus:v2.45.0
     restart: always
@@ -51,3 +125,9 @@ services:
       
 volumes:
   cassandra_data:
+  redis-cluster_data-0:
+  redis-cluster_data-1:
+  redis-cluster_data-2:
+  redis-cluster_data-3:
+  redis-cluster_data-4:
+  redis-cluster_data-5:

@@ -5,23 +5,34 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-kit/kit/endpoint"
 	"github.com/omran95/chat-app/pkg/common"
+	"github.com/omran95/chat-app/pkg/infrastructure"
+	subscriberpb "github.com/omran95/chat-app/pkg/subscriber/proto"
 )
 
 type RoomService interface {
 	CreateRoom(ctx context.Context) (Room, error)
 	RoomExist(ctx context.Context, roomID RoomID) (bool, error)
 	BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error
+	BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error
+	AddRoomSubscriber(ctx context.Context, roomID RoomID, userName string, subscriberTopic string) error
+	RemoveRoomSubscriber(ctx context.Context, roomID RoomID, userName string) error
 }
 
 type RoomServiceImpl struct {
-	snowFlake        common.IDGenerator
-	roomRepo         RoomRepo
-	messagePublisher MessagePublisher
+	snowFlake                 common.IDGenerator
+	roomRepo                  RoomRepo
+	messagePublisher          MessagePublisher
+	AddRoomSubscriberEndpoint endpoint.Endpoint
+	RemoveSubscriberEndpoint  endpoint.Endpoint
 }
 
-func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo, messagePublisher MessagePublisher) *RoomServiceImpl {
-	return &RoomServiceImpl{snowflake, roomRepo, messagePublisher}
+func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo, messagePublisher MessagePublisher, subscriberClient *SubscriberGrpcClient) *RoomServiceImpl {
+	AddRoomSubscriberEndpoint := infrastructure.NewGrpcEndpoint(subscriberClient.Conn, "subscriber", "proto.SubscriberService", "AddRoomSubscriber", &subscriberpb.AddRoomSubscriberResponse{})
+	RemoveRoomSubscriberEndpoint := infrastructure.NewGrpcEndpoint(subscriberClient.Conn, "subscriber", "proto.SubscriberService", "RemoveRoomSubscriber", &subscriberpb.RemoveRoomSubscriberResponse{})
+
+	return &RoomServiceImpl{snowflake, roomRepo, messagePublisher, AddRoomSubscriberEndpoint, RemoveRoomSubscriberEndpoint}
 }
 
 func (service *RoomServiceImpl) CreateRoom(ctx context.Context) (Room, error) {
@@ -44,8 +55,11 @@ func (service *RoomServiceImpl) RoomExist(ctx context.Context, roomID RoomID) (b
 }
 
 func (service *RoomServiceImpl) BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error {
-
 	return service.BroadcastActionMessage(ctx, roomID, userName, JoinedMessage)
+}
+
+func (service *RoomServiceImpl) BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error {
+	return service.BroadcastActionMessage(ctx, roomID, userName, LeavedMessage)
 }
 
 func (service *RoomServiceImpl) BroadcastActionMessage(ctx context.Context, roomID RoomID, userName string, action Action) error {
@@ -63,6 +77,29 @@ func (service *RoomServiceImpl) BroadcastActionMessage(ctx context.Context, room
 	}
 	if err := service.messagePublisher.PublishMessage(ctx, &msg); err != nil {
 		return fmt.Errorf("error broadcast action message: %w", err)
+	}
+	return nil
+}
+
+func (service *RoomServiceImpl) AddRoomSubscriber(ctx context.Context, roomID RoomID, userName string, subscriberTopic string) error {
+	_, err := service.AddRoomSubscriberEndpoint(ctx, &subscriberpb.AddRoomSubscriberRequest{
+		RoomId:          roomID,
+		Username:        userName,
+		SubscriberTopic: subscriberTopic,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *RoomServiceImpl) RemoveRoomSubscriber(ctx context.Context, roomID RoomID, userName string) error {
+	_, err := service.RemoveSubscriberEndpoint(ctx, &subscriberpb.RemoveRoomSubscriberRequest{
+		RoomId:   roomID,
+		Username: userName,
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
