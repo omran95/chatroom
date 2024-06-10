@@ -18,6 +18,7 @@ var (
 
 type RedisCache interface {
 	HSet(ctx context.Context, key string, values ...interface{}) error
+	HGet(ctx context.Context, key, field string) (string, error)
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
 	HDel(ctx context.Context, key, field string) error
 }
@@ -52,6 +53,10 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 
 func NewRedisCacheImpl(client redis.UniversalClient) *RedisCacheImpl {
 	return &RedisCacheImpl{client}
+}
+
+func (rc *RedisCacheImpl) HGet(ctx context.Context, key, field string) (string, error) {
+	return rc.client.HGet(ctx, key, field).Result()
 }
 
 func (rc *RedisCacheImpl) HGetAll(ctx context.Context, key string) (map[string]string, error) {

@@ -12,7 +12,7 @@ var redisPrefix = "subscriber"
 type SubscriberRepo interface {
 	AddRoomSubscriber(ctx context.Context, roomId uint64, userName, subscriber string) error
 	RemoveRoomSubscriber(ctx context.Context, roomId uint64, userName string) error
-	GetRoomSubscribers(ctx context.Context, roomId uint64) ([]string, error)
+	GetRoomSubscribers(ctx context.Context, roomId uint64) (map[string]struct{}, error)
 }
 
 type SubscriberRepoImpl struct {
@@ -33,7 +33,7 @@ func (repo *SubscriberRepoImpl) RemoveRoomSubscriber(ctx context.Context, roomID
 	return repo.cache.HDel(ctx, key, userName)
 }
 
-func (repo *SubscriberRepoImpl) GetRoomSubscribers(ctx context.Context, roomID uint64) ([]string, error) {
+func (repo *SubscriberRepoImpl) GetRoomSubscribers(ctx context.Context, roomID uint64) (map[string]struct{}, error) {
 	key := constructRoomKey(roomID)
 
 	roomSubscribers, err := repo.cache.HGetAll(ctx, key)
@@ -41,12 +41,13 @@ func (repo *SubscriberRepoImpl) GetRoomSubscribers(ctx context.Context, roomID u
 		return nil, err
 	}
 
-	size := len(roomSubscribers)
-	subscribers := make([]string, size)
+	// Using Map for uniquness
+	subscribers := map[string]struct{}{}
 
 	for _, subscriber := range roomSubscribers {
-		subscribers = append(subscribers, subscriber)
+		subscribers[subscriber] = struct{}{}
 	}
+
 	return subscribers, nil
 }
 

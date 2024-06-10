@@ -67,12 +67,14 @@ func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws Me
 }
 
 func (server *HttpServer) RegisterRoutes() {
+	server.msgSubscriber.RegisterHandler()
 	roomGroup := server.engine.Group("/api/rooms")
 	{
 		roomGroup.POST("", server.CreateRoom)
 		roomGroup.GET("/:id", server.JoinRoom)
 	}
 	server.wsCon.HandleConnect(server.HandleRoomOnJoin)
+	server.wsCon.HandleDisconnect(server.HandleRoomOnLeave)
 }
 
 func (server *HttpServer) Run() {

@@ -15,6 +15,7 @@ type RoomService interface {
 	CreateRoom(ctx context.Context) (Room, error)
 	RoomExist(ctx context.Context, roomID RoomID) (bool, error)
 	BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error
+	BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error
 	AddRoomSubscriber(ctx context.Context, roomID RoomID, userName string, subscriberTopic string) error
 	RemoveRoomSubscriber(ctx context.Context, roomID RoomID, userName string) error
 }
@@ -54,8 +55,11 @@ func (service *RoomServiceImpl) RoomExist(ctx context.Context, roomID RoomID) (b
 }
 
 func (service *RoomServiceImpl) BroadcastConnectMessage(ctx context.Context, roomID RoomID, userName string) error {
-
 	return service.BroadcastActionMessage(ctx, roomID, userName, JoinedMessage)
+}
+
+func (service *RoomServiceImpl) BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error {
+	return service.BroadcastActionMessage(ctx, roomID, userName, LeavedMessage)
 }
 
 func (service *RoomServiceImpl) BroadcastActionMessage(ctx context.Context, roomID RoomID, userName string, action Action) error {

@@ -52,17 +52,27 @@ func (server *HttpServer) JoinRoom(c *gin.Context) {
 }
 
 func (server *HttpServer) HandleRoomOnJoin(wsSession *melody.Session) {
-	userName := wsSession.Request.URL.Query().Get("userName")
-	// path e.g. /api/rooms/:roomID
-	pathParts := strings.Split(wsSession.Request.URL.Path, "/")
-	roomID, _ := strconv.ParseUint(pathParts[len(pathParts)-1], 10, 64)
-
+	roomID, userName := extractWsParams(wsSession)
 	err := server.initializeChatSession(wsSession, roomID, userName)
 	if err != nil {
 		server.logger.Error(err.Error())
 		return
 	}
+
 	if err := server.roomService.BroadcastConnectMessage(context.Background(), roomID, userName); err != nil {
+		server.logger.Error(err.Error())
+		return
+	}
+}
+
+func (server *HttpServer) HandleRoomOnLeave(wsSession *melody.Session) {
+	roomID, userName := extractWsParams(wsSession)
+	err := server.roomService.RemoveRoomSubscriber(context.Background(), roomID, userName)
+	if err != nil {
+		server.logger.Error(err.Error())
+		return
+	}
+	if err := server.roomService.BroadcastLeaveMessage(context.Background(), roomID, userName); err != nil {
 		server.logger.Error(err.Error())
 		return
 	}
@@ -75,6 +85,14 @@ func (server *HttpServer) initializeChatSession(sess *melody.Session, roomID Roo
 	}
 	sess.Set(sessRidKey, roomID)
 	return nil
+}
+
+func extractWsParams(wsSession *melody.Session) (roomID RoomID, userName string) {
+	userName = wsSession.Request.URL.Query().Get("userName")
+	// path e.g. /api/rooms/:roomID
+	pathParts := strings.Split(wsSession.Request.URL.Path, "/")
+	roomID, _ = strconv.ParseUint(pathParts[len(pathParts)-1], 10, 64)
+	return
 }
 
 func response(c *gin.Context, httpCode int, err error) {

@@ -75,7 +75,7 @@ type ObservabilityConfig struct {
 func applyDefaultValues() {
 	viper.SetDefault("room.http.server.port", "3000")
 	viper.SetDefault("room.http.server.maxConn", 20000)
-	viper.SetDefault("room.messageSubscriber.topic", "room.msg.subscriber"+os.Getenv("HOSTNAME"))
+	viper.SetDefault("room.messageSubscriber.topic", "room.msg.subscriber."+os.Getenv("HOSTNAME"))
 	viper.SetDefault("room.grpc.client.subscriberEndpoint", "localhost:5000")
 
 	viper.SetDefault("subscriber.grpc.server.port", "5000")
