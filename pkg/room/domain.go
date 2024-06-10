@@ -50,7 +50,7 @@ var (
 	JoinedMessage    Action = "joined"
 	IsTypingMessage  Action = "istyping"
 	EndTypingMessage Action = "endtyping"
-	LeavedMessage    Action = "leaved"
+	LeftMessage      Action = "left"
 )
 
 type MessageID = uint64

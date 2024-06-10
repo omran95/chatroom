@@ -11,7 +11,7 @@ type RoomRepo interface {
 	CreateRoom(ctx context.Context, room Room) error
 	RoomExist(ctx context.Context, roomID RoomID) (bool, error)
 	IsProtected(ctx context.Context, roomID RoomID) (bool, error)
-	IsValidPassword(ctx context.Context, roomID RoomID, password string) (bool, error)
+	GetRoomPassword(ctx context.Context, roomID RoomID) (string, error)
 }
 
 type RoomRepoImpl struct {
@@ -56,11 +56,11 @@ func (repo *RoomRepoImpl) IsProtected(ctx context.Context, roomID RoomID) (bool,
 	return isProtected, nil
 }
 
-func (repo *RoomRepoImpl) IsValidPassword(ctx context.Context, roomID RoomID, password string) (bool, error) {
+func (repo *RoomRepoImpl) GetRoomPassword(ctx context.Context, roomID RoomID) (string, error) {
 	var roomPassword string
 	err := repo.cassandraSession.Query("select password from rooms where id = ?", roomID).WithContext(ctx).Idempotent(true).Scan(&roomPassword)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return roomPassword == password, nil
+	return roomPassword, nil
 }
