@@ -2,6 +2,9 @@ CREATE KEYSPACE chatRoom WITH replication = {'class': 'SimpleStrategy', 'replica
 USE chatRoom;
 CREATE TABLE rooms (
     id varint,
+    name text,
+    protected boolean,
+    password text,
     PRIMARY KEY((id))
 );
 CREATE TABLE messages (

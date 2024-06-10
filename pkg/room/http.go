@@ -71,10 +71,11 @@ func (server *HttpServer) RegisterRoutes() {
 	roomGroup := server.engine.Group("/api/rooms")
 	{
 		roomGroup.POST("", server.CreateRoom)
-		roomGroup.GET("/:id", server.JoinRoom)
+		roomGroup.GET("/:id", server.RequestToJoinRoom)
 	}
 	server.wsCon.HandleConnect(server.HandleRoomOnJoin)
-	server.wsCon.HandleDisconnect(server.HandleRoomOnLeave)
+	server.wsCon.HandleClose(server.HandleRoomOnLeave)
+	server.wsCon.HandleMessage(server.HandleOnMessage)
 }
 
 func (server *HttpServer) Run() {
