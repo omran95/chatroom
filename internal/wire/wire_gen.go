@@ -45,7 +45,8 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl, messagePublisherImpl, subscriberGrpcClient)
+	messageRepoImpl := room.NewMessageRepo(session)
+	roomServiceImpl := room.NewRoomService(idGenerator, roomRepoImpl, messagePublisherImpl, subscriberGrpcClient, messageRepoImpl)
 	router, err := infrastructure.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err

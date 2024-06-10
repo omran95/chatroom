@@ -21,6 +21,7 @@ type RoomService interface {
 	BroadcastLeaveMessage(ctx context.Context, roomID RoomID, userName string) error
 	AddRoomSubscriber(ctx context.Context, roomID RoomID, userName string, subscriberTopic string) error
 	RemoveRoomSubscriber(ctx context.Context, roomID RoomID, userName string) error
+	HandleNewMessage(ctx context.Context, msg Message) error
 }
 
 type RoomServiceImpl struct {
@@ -29,13 +30,14 @@ type RoomServiceImpl struct {
 	messagePublisher          MessagePublisher
 	AddRoomSubscriberEndpoint endpoint.Endpoint
 	RemoveSubscriberEndpoint  endpoint.Endpoint
+	messageRepo               MessageRepo
 }
 
-func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo, messagePublisher MessagePublisher, subscriberClient *SubscriberGrpcClient) *RoomServiceImpl {
+func NewRoomService(snowflake common.IDGenerator, roomRepo RoomRepo, messagePublisher MessagePublisher, subscriberClient *SubscriberGrpcClient, messageRepo MessageRepo) *RoomServiceImpl {
 	AddRoomSubscriberEndpoint := infrastructure.NewGrpcEndpoint(subscriberClient.Conn, "subscriber", "proto.SubscriberService", "AddRoomSubscriber", &subscriberpb.AddRoomSubscriberResponse{})
 	RemoveRoomSubscriberEndpoint := infrastructure.NewGrpcEndpoint(subscriberClient.Conn, "subscriber", "proto.SubscriberService", "RemoveRoomSubscriber", &subscriberpb.RemoveRoomSubscriberResponse{})
 
-	return &RoomServiceImpl{snowflake, roomRepo, messagePublisher, AddRoomSubscriberEndpoint, RemoveRoomSubscriberEndpoint}
+	return &RoomServiceImpl{snowflake, roomRepo, messagePublisher, AddRoomSubscriberEndpoint, RemoveRoomSubscriberEndpoint, messageRepo}
 }
 
 func (service *RoomServiceImpl) CreateRoom(ctx context.Context, dto CreateRoomDTO) (*RoomPresenter, error) {
@@ -106,8 +108,30 @@ func (service *RoomServiceImpl) BroadcastActionMessage(ctx context.Context, room
 		Payload:  string(action),
 		Time:     time.Now().UnixMilli(),
 	}
-	if err := service.messagePublisher.PublishMessage(ctx, &msg); err != nil {
+	if err := service.messagePublisher.PublishMessage(ctx, msg); err != nil {
 		return fmt.Errorf("error broadcast action message: %w", err)
+	}
+	return nil
+}
+
+func (service *RoomServiceImpl) BroadcastTextMessage(ctx context.Context, roomID RoomID, userName string, payload string) error {
+	messageID, err := service.snowFlake.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for text message: %w", err)
+	}
+	msg := Message{
+		ID:       messageID,
+		Event:    EventText,
+		RoomID:   roomID,
+		UserName: userName,
+		Payload:  payload,
+		Time:     time.Now().UnixMilli(),
+	}
+	if err := service.messageRepo.InesrtMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error saving text message: %w", err)
+	}
+	if err := service.messagePublisher.PublishMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error broadcast text message: %w", err)
 	}
 	return nil
 }
@@ -131,6 +155,22 @@ func (service *RoomServiceImpl) RemoveRoomSubscriber(ctx context.Context, roomID
 	})
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (service *RoomServiceImpl) HandleNewMessage(ctx context.Context, msg Message) error {
+	msgID, err := service.snowFlake.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for new message: %w", err)
+	}
+	msg.ID = msgID
+	switch msg.Event {
+	case EventAction:
+		return service.BroadcastActionMessage(ctx, msg.RoomID, msg.UserName, Action(msg.Payload))
+	case EventText:
+		return service.BroadcastTextMessage(ctx, msg.RoomID, msg.UserName, msg.Payload)
+	case EventSeen:
 	}
 	return nil
 }
