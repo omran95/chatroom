@@ -1,4 +1,4 @@
-# Go Random Chat
+# Chat-APP
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/omran95/chat-app?label=Version&sort=semver)
 
 Real-time chat app in a highly scalable architecture. 
@@ -24,4 +24,4 @@ Real-time chat app in a highly scalable architecture.
 - Pub/Sub using Kafka.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
 - Protect create room API with distributed rate limiter using Token-Bucket Algorithm with Redis.
-- Broadcasting seen, typing, join, and leave to all room members.
+- Broadcasting seen, typing, join, and leave events to all room members.
