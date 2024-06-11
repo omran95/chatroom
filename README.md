@@ -15,7 +15,7 @@ Real-time chat app in a highly scalable architecture.
   - `room`: creates rooms and handles messages
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
 
-- gRPC for inter-service communication
+- gRPC for low-latency and high-throughput inter-service communication
   - with retry, timeout, and circuit breaker
 - Graceful shutdown.
 - Observability using Prometheus for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
