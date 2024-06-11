@@ -59,7 +59,14 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpServer := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl, messageSubscriber)
+	universalClient, err := infrastructure.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	httpServer, err := room.NewHttpServer(name, httpLog, engine, melodyConn, configConfig, roomServiceImpl, messageSubscriber, universalClient)
+	if err != nil {
+		return nil, err
+	}
 	roomRouter := room.NewRouter(httpServer)
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
 	server := common.NewServer(name, roomRouter, observabilityInjector)

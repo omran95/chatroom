@@ -2,13 +2,16 @@ package room
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/omran95/chat-app/pkg/common"
 	"github.com/omran95/chat-app/pkg/config"
+	"github.com/redis/go-redis/v9"
 	"gopkg.in/olahol/melody.v1"
 
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -29,14 +32,15 @@ func NewWebSocketConnection() MelodyConn {
 }
 
 type HttpServer struct {
-	port          string
-	name          string
-	httpServer    *http.Server
-	wsCon         MelodyConn
-	engine        *gin.Engine
-	logger        common.HttpLog
-	roomService   RoomService
-	msgSubscriber *MessageSubscriber
+	port                  string
+	name                  string
+	httpServer            *http.Server
+	wsCon                 MelodyConn
+	engine                *gin.Engine
+	logger                common.HttpLog
+	roomService           RoomService
+	msgSubscriber         *MessageSubscriber
+	rateLimiterMiddleware *RateLimiterMiddleware
 }
 
 func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gin.Engine {
@@ -54,23 +58,30 @@ func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gi
 	return engine
 }
 
-func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService, msgSubscriber *MessageSubscriber) *HttpServer {
-	return &HttpServer{
-		name:          name,
-		logger:        logger,
-		engine:        engine,
-		wsCon:         ws,
-		port:          config.Room.Http.Server.Port,
-		roomService:   roomService,
-		msgSubscriber: msgSubscriber,
+func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService, msgSubscriber *MessageSubscriber, redisClient redis.UniversalClient) (*HttpServer, error) {
+	// FillingRatePerRequest (RPS), bucketSize, expiration
+	createRoomsrateLimiter, err := common.NewRateLimiter(redisClient, 0.05, 5, 24*time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("error creating room rate limiter: %w", err)
 	}
+	rateLimiterMiddleware := NewRateLimiterMiddleware(*createRoomsrateLimiter)
+	return &HttpServer{
+		name:                  name,
+		logger:                logger,
+		engine:                engine,
+		wsCon:                 ws,
+		port:                  config.Room.Http.Server.Port,
+		roomService:           roomService,
+		msgSubscriber:         msgSubscriber,
+		rateLimiterMiddleware: rateLimiterMiddleware,
+	}, nil
 }
 
 func (server *HttpServer) RegisterRoutes() {
 	server.msgSubscriber.RegisterHandler()
 	roomGroup := server.engine.Group("/api/rooms")
 	{
-		roomGroup.POST("", server.CreateRoom)
+		roomGroup.POST("", server.rateLimiterMiddleware.LimitCreateRooms, server.CreateRoom)
 		roomGroup.GET("/:id", server.RequestToJoinRoom)
 	}
 	server.wsCon.HandleConnect(server.HandleRoomOnJoin)
