@@ -76,3 +76,7 @@ func (m *Message) Encode() []byte {
 	result, _ := json.Marshal(m)
 	return result
 }
+
+type RoomAuth struct {
+	Password string `json:"password"`
+}

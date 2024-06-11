@@ -2,9 +2,7 @@ package room
 
 import (
 	"context"
-	"errors"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -169,22 +167,11 @@ func (server *HttpServer) initializeChatSession(wsSession *melody.Session, roomI
 }
 
 func extractPassword(msg []byte) (string, error) {
-	// Define the regular expression pattern with a capturing group for the password
-	// {roomId}-password={password}
-	pattern := `^\d+-password=(.+)$`
-
-	regex, err := regexp.Compile(pattern)
+	auth, err := decodeToRoomAuth(msg)
 	if err != nil {
 		return "", err
 	}
-
-	matches := regex.FindStringSubmatch(string(msg))
-
-	// Check if any matches were found
-	if len(matches) >= 2 {
-		return matches[1], nil
-	}
-	return "", errors.New("password not found in the string")
+	return auth.Password, nil
 }
 
 func extractWsParams(wsSession *melody.Session) (roomID RoomID, userName string) {
