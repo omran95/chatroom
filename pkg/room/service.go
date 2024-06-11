@@ -3,6 +3,7 @@ package room
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
@@ -159,18 +160,41 @@ func (service *RoomServiceImpl) RemoveRoomSubscriber(ctx context.Context, roomID
 	return nil
 }
 
-func (service *RoomServiceImpl) HandleNewMessage(ctx context.Context, msg Message) error {
-	msgID, err := service.snowFlake.NextID()
-	if err != nil {
-		return fmt.Errorf("error create snowflake ID for new message: %w", err)
+func (service *RoomServiceImpl) MarkSeen(ctx context.Context, roomID RoomID, userName string, seenMessageID MessageID) error {
+	if err := service.messageRepo.MarkSeen(ctx, roomID, seenMessageID); err != nil {
+		return err
 	}
-	msg.ID = msgID
+	messageID, err := service.snowFlake.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for seen message: %w", err)
+	}
+	msg := Message{
+		ID:       messageID,
+		Event:    EventSeen,
+		RoomID:   roomID,
+		UserName: userName,
+		Payload:  strconv.FormatUint(seenMessageID, 10),
+		Seen:     true,
+		Time:     time.Now().UnixMilli(),
+	}
+	if err := service.messagePublisher.PublishMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error broadcast seen message: %w", err)
+	}
+	return nil
+}
+
+func (service *RoomServiceImpl) HandleNewMessage(ctx context.Context, msg Message) error {
 	switch msg.Event {
 	case EventAction:
 		return service.BroadcastActionMessage(ctx, msg.RoomID, msg.UserName, Action(msg.Payload))
 	case EventText:
 		return service.BroadcastTextMessage(ctx, msg.RoomID, msg.UserName, msg.Payload)
 	case EventSeen:
+		seenMessageID, err := strconv.ParseUint(msg.Payload, 10, 64)
+		if err != nil {
+			return err
+		}
+		return service.MarkSeen(ctx, msg.RoomID, msg.UserName, seenMessageID)
 	}
 	return nil
 }
