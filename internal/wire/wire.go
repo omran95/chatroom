@@ -23,6 +23,8 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		infrastructure.NewKafkaPublisher,
 		room.NewSubscriberGrpcClient,
 
+		infrastructure.NewRedisClient,
+
 		room.NewMessagePublisher,
 		wire.Bind(new(room.MessagePublisher), new(*room.MessagePublisherImpl)),
 
