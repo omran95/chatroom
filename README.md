@@ -4,8 +4,6 @@
 Real-time chat app in a highly scalable architecture. 
 
 
-## Overview
-
 ### System architecture
 
 <img width="1028" alt="image" src="https://raw.githubusercontent.com/omran95/chat-app/main/architecture.png">
@@ -14,7 +12,7 @@ Real-time chat app in a highly scalable architecture.
 ### Features
 - Real-time chatting using websockets.
 - Services **are stateless** and can be horizontally scaled. (Redunduncy)
-  - `room`: creates rooms and handle messages
+  - `room`: creates rooms and handles messages
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
 
 - gRPC for inter-service communication
@@ -24,4 +22,4 @@ Real-time chat app in a highly scalable architecture.
 - Pub/Sub using Kafka.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
 - Protect create room API with distributed rate limiter using Token-Bucket Algorithm with Redis.
-- Broadcasting seen, typing, join, and leave events to all room members.
+- Broadcasting seen, typing, joining, and leaving events to all room members.
