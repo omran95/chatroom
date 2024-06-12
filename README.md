@@ -22,5 +22,5 @@ Backend for a real-time chat room app in a highly scalable architecture.
 - Observability using Prometheus for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
 - Pub/Sub using Kafka with partitioning for parallel processing.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
-- Protect create room API with distributed rate limiter using Token-Bucket Algorithm with Redis.
+- Protect the create room API with distributed rate limiting using the Token-Bucket Algorithm with Redis.
 - Broadcasting seen, typing, joining, and leaving events to all room members.
