@@ -1,10 +1,88 @@
 version: '3.7'
 services:
+  reverse-proxy:
+    image: traefik:v2.3
+    restart: always
+    command:
+      - "--entryPoints.web.address=:80"
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - --accesslog=true
+      - --tracing=true
+      - --tracing.jaeger=true
+      - --tracing.jaeger.collector.endpoint=http://jaeger:14268/api/traces?format=jaeger.thrift
+      - --tracing.jaeger.gen128Bit
+      - --tracing.jaeger.samplingParam=1.0
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  chat-room:
+    build:
+      context: ../
+      dockerfile: ../chat-app/build/docker/Dockerfile  
+    restart: always
+    expose:
+      - 3000
+    command:
+      - room
+    environment:
+      ROOM_HTTP_SERVER_PORT: 3000
+      ROOM_HTTP_SERVER_MAXCONN: 2000
+      ROOM_GRPC_CLIENT_SUBSCRIBER_ENDPOINT: reverse-proxy:80
+      REDIS_PASSWORD: redis_cluster_password
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
+      REDIS_EXPIRATIONHOUR: "24"
+      KAFKA_ADDRS: kafka:9092
+      KAFKA_VERSION: 3.6.0
+      CASSANDRA_HOSTS: cassandra
+      CASSANDRA_PORT: 9042
+      CASSANDRA_USER: billy
+      CASSANDRA_PASSWORD: p@ssword
+      OBSERVABILITY_PROMETHEUS_PORT: 8080
+      OBSERVABILITY_TRACING_URL: jaeger:14268
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat-room.rule=PathPrefix(`/api/rooms`)"
+      - "traefik.http.routers.chat-room.entrypoints=web"
+      - "traefik.http.routers.chat-room.service=chat-room"
+      - "traefik.http.services.chat-room.loadbalancer.server.port=3000"
+    depends_on:
+      - zookeeper
+      - kafka
+  subscriber:
+    build:
+      context: ../
+      dockerfile: ./build/docker/Dockerfile
+    restart: always
+    expose:
+      - 3001
+    command:
+      - subscriber
+    environment:
+      SUBSCRIBER_GRPC_SERVER_PORT: 4000
+      KAFKA_ADDRS: kafka:9092
+      KAFKA_VERSION: "3.6.0"
+      REDIS_PASSWORD: redis_cluster_password
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
+      REDIS_EXPIRATIONHOUR: "24"
+      OBSERVABILITY_PROMETHEUS_PORT: 8080
+      OBSERVABILITY_TRACING_URL: jaeger:14268
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.subscriber-grpc.rule=Headers(`content-type`,`application/grpc`) && Headers(`service-id`, `subscriber`)"
+      - "traefik.http.routers.subscriber-grpc.entrypoints=web"
+      - "traefik.http.routers.subscriber-grpc.service=subscriber-grpc"
+      - "traefik.http.services.subscriber-grpc.loadbalancer.server.port=3001"
+      - "traefik.http.services.subscriber-grpc.loadbalancer.server.scheme=h2c"
+    depends_on:
+      - zookeeper
+      - kafka    
   cassandra:
     image: docker.io/bitnami/cassandra:latest
     restart: always
-    ports:
-      - 9042:9042
     volumes:
       - cassandra_data:/bitnami
       - ./room/cassandra:/docker-entrypoint-initdb.d
@@ -16,8 +94,6 @@ services:
   redis-node-0:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6379:6379
     volumes:
       - redis-cluster_data-0:/bitnami/redis/data
     environment:
@@ -27,8 +103,6 @@ services:
   redis-node-1:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6380:6380
     volumes:
       - redis-cluster_data-1:/bitnami/redis/data
     environment:
@@ -38,8 +112,6 @@ services:
   redis-node-2:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6381:6381
     volumes:
       - redis-cluster_data-2:/bitnami/redis/data
     environment:
@@ -49,8 +121,6 @@ services:
   redis-node-3:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6382:6382
     volumes:
       - redis-cluster_data-3:/bitnami/redis/data
     environment:
@@ -60,8 +130,6 @@ services:
   redis-node-4:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6383:6383
     volumes:
       - redis-cluster_data-4:/bitnami/redis/data
     environment:
@@ -71,8 +139,6 @@ services:
   redis-node-5:
     image: docker.io/bitnami/redis-cluster:7.0
     restart: always
-    ports:
-      - 6384:6384
     volumes:
       - redis-cluster_data-5:/bitnami/redis/data
     depends_on:
@@ -100,7 +166,7 @@ services:
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"

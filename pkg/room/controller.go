@@ -147,12 +147,12 @@ func (server *HttpServer) sendAuthRequiredMessage(wsSession *melody.Session) err
 func (server *HttpServer) joinRoom(wsSession *melody.Session, roomID RoomID, userName string) {
 	err := server.initializeChatSession(wsSession, roomID, userName)
 	if err != nil {
-		server.logger.Error(err.Error())
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(500, "Error: "+err.Error()))
 		return
 	}
 
 	if err := server.roomService.BroadcastConnectMessage(context.Background(), roomID, userName); err != nil {
-		server.logger.Error(err.Error())
+		wsSession.CloseWithMsg(melody.FormatCloseMessage(500, "Error: "+err.Error()))
 		return
 	}
 }

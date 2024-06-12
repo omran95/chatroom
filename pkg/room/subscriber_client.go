@@ -11,7 +11,7 @@ type SubscriberGrpcClient struct {
 }
 
 func NewSubscriberGrpcClient(config *config.Config) (*SubscriberGrpcClient, error) {
-	conn, err := infrastructure.InitializeGrpcClient(config.Room.Grpc.Client.SubscriberEndpoint)
+	conn, err := infrastructure.InitializeGrpcClient(config.Room.Grpc.Client.Subscriber.Endpoint)
 	if err != nil {
 		return nil, err
 	}

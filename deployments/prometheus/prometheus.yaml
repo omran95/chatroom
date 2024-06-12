@@ -7,21 +7,9 @@ scrape_configs:
     static_configs:
     - targets: ['localhost:9090']
   
-  - job_name: 'web_monitor'
+  - job_name: 'room_monitor'
     static_configs:
-    - targets: ['deployments-web-1:8080']
-  - job_name: 'match_monitor'
+    - targets: ['deployments-chat-room-1:8080','deployments-chat-room-2:8080','deployments-chat-room-3:8080']
+  - job_name: 'subscriber_monitor'
     static_configs:
-    - targets: ['deployments-match-1:8080']
-  - job_name: 'chat_monitor'
-    static_configs:
-    - targets: ['deployments-random-chat-1:8080','deployments-random-chat-2:8080','deployments-random-chat-3:8080']
-  - job_name: 'forwarder_monitor'
-    static_configs:
-    - targets: ['deployments-forwarder-1:8080']
-  - job_name: 'uploader_monitor'
-    static_configs:
-    - targets: ['deployments-uploader-1:8080']
-  - job_name: 'user_monitor'
-    static_configs:
-    - targets: ['deployments-user-1:8080']
+    - targets: ['deployments-subscriber-1:8080']
