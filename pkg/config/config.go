@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/spf13/viper"
 )
 
@@ -61,8 +62,13 @@ type RedisConfig struct {
 }
 
 type KafkaConfig struct {
-	Addrs   string
-	Version string
+	Addrs      string
+	Version    string
+	Subscriber struct {
+		ConsumerGroup     string
+		NumPartitions     int32
+		ReplicationFactor int16
+	}
 }
 
 type ObservabilityConfig struct {
@@ -98,6 +104,9 @@ func applyDefaultValues() {
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")
+	viper.SetDefault("kafka.subscriber.consumerGroup", watermill.NewUUID())
+	viper.SetDefault("kafka.subscriber.numPartitions", 1)
+	viper.SetDefault("kafka.subscriber.replicationFactor", 2)
 
 	viper.SetDefault("observability.prometheus.port", "")
 	viper.SetDefault("observability.Tracing.URL", "localhost:4318")

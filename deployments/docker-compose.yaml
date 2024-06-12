@@ -66,6 +66,9 @@ services:
       SUBSCRIBER_GRPC_SERVER_PORT: 4000
       KAFKA_ADDRS: kafka:9092
       KAFKA_VERSION: "3.6.0"
+      KAFKA_SUBSCRIBER_CONSUMERGROUP: subscriber_consumer_group
+      # Manual partition based on roomID
+      KAFKA_SUBSCRIBER_NUMPARTITION: -1
       REDIS_PASSWORD: redis_cluster_password
       REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"

@@ -51,12 +51,13 @@ func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 		kafka.SubscriberConfig{
 			Brokers:       common.GetServerAddrs(config.Kafka.Addrs),
 			Unmarshaler:   kafka.DefaultMarshaler{},
-			ConsumerGroup: watermill.NewUUID(),
+			ConsumerGroup: config.Kafka.Subscriber.ConsumerGroup,
 			InitializeTopicDetails: &sarama.TopicDetail{
-				NumPartitions:     1,
-				ReplicationFactor: 2,
+				NumPartitions:     -1,
+				ReplicationFactor: config.Kafka.Subscriber.ReplicationFactor,
 			},
 			OverwriteSaramaConfig: saramaConfig,
+			OTELEnabled:           true,
 		},
 		logger,
 	)
