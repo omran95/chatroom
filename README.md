@@ -1,7 +1,7 @@
 # Chatroom
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/omran95/chat-app?label=Version&sort=semver)
 
-Backend for Real-time chat room app in a highly scalable architecture. 
+Backend for a real-time chat room app in a highly scalable architecture. 
 
 
 ### System architecture
