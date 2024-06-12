@@ -36,7 +36,7 @@ func NewKafkaPublisher(config *config.Config) (message.Publisher, error) {
 	return kafkaPublisher, nil
 }
 
-func NewKafkaPublisherWithPartioning(config *config.Config) (message.Publisher, error) {
+func NewKafkaPublisherWithPartitioning(config *config.Config) (message.Publisher, error) {
 	kafkaPublisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
 			Brokers: common.GetServerAddrs(config.Kafka.Addrs),
