@@ -1,7 +1,7 @@
 # Chat-APP
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/omran95/chat-app?label=Version&sort=semver)
 
-Real-time chat app in a highly scalable architecture. 
+Backend for Real-time chat app in a highly scalable architecture. 
 
 
 ### System architecture
@@ -10,7 +10,7 @@ Real-time chat app in a highly scalable architecture.
 
 
 ### Features
-- Backend for Real-time chatting using websockets.
+- Real-time chatting using websockets.
 - Services **are stateless** and can be horizontally scaled. (Redundancy).
   - `room`: creates rooms and handles messages.
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
