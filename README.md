@@ -15,6 +15,7 @@ Backend for a real-time chat room app in a highly scalable architecture.
   - `room`: creates rooms and handles messages.
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
 
+- Traefik for efficient HTTP reverse proxying and load balancing
 - gRPC for low-latency and high-throughput inter-service communication.
   - with retry (Exponential backoff with jitter), timeout, and circuit breaker.
 - Graceful shutdown.
