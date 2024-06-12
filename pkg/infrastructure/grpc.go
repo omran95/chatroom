@@ -164,6 +164,7 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 		dialOpts...,
 	)
 	if err != nil {
+		slog.Error("error in connecting to grpc host: " + err.Error())
 		return nil, err
 	}
 	return conn, nil

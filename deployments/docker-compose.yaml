@@ -4,13 +4,14 @@ services:
     image: traefik:v2.3
     restart: always
     command:
-      - "--entryPoints.web.address=:80"
+      - "--entryPoints.api.address=:80"
       - "--api.insecure=true"
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
       - --accesslog=true
       - --tracing=true
       - --tracing.jaeger=true
+      - --tracing.jaeger.traceContextHeaderName=request-trace-id
       - --tracing.jaeger.collector.endpoint=http://jaeger:14268/api/traces?format=jaeger.thrift
       - --tracing.jaeger.gen128Bit
       - --tracing.jaeger.samplingParam=1.0
@@ -46,7 +47,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chat-room.rule=PathPrefix(`/api/rooms`)"
-      - "traefik.http.routers.chat-room.entrypoints=web"
+      - "traefik.http.routers.chat-room.entrypoints=api"
       - "traefik.http.routers.chat-room.service=chat-room"
       - "traefik.http.services.chat-room.loadbalancer.server.port=3000"
     depends_on:
@@ -58,7 +59,7 @@ services:
       dockerfile: ./build/docker/Dockerfile
     restart: always
     expose:
-      - 3001
+      - 4000
     command:
       - subscriber
     environment:
@@ -73,9 +74,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.subscriber-grpc.rule=Headers(`content-type`,`application/grpc`) && Headers(`service-id`, `subscriber`)"
-      - "traefik.http.routers.subscriber-grpc.entrypoints=web"
+      - "traefik.http.routers.subscriber-grpc.entrypoints=api"
       - "traefik.http.routers.subscriber-grpc.service=subscriber-grpc"
-      - "traefik.http.services.subscriber-grpc.loadbalancer.server.port=3001"
+      - "traefik.http.services.subscriber-grpc.loadbalancer.server.port=4000"
       - "traefik.http.services.subscriber-grpc.loadbalancer.server.scheme=h2c"
     depends_on:
       - zookeeper
@@ -161,8 +162,6 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest
     restart: unless-stopped
-    ports:
-      - "9092:9092"  
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
