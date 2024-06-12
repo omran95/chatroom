@@ -2,6 +2,7 @@ package room
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -22,8 +23,11 @@ func NewMessagePublisher(publisher message.Publisher) *MessagePublisherImpl {
 }
 
 func (msgPub *MessagePublisherImpl) PublishMessage(ctx context.Context, msg Message) error {
-	return msgPub.publisher.Publish(MessagePubTopic, message.NewMessage(
+	kafkaMessage := message.NewMessage(
 		watermill.NewUUID(),
 		msg.Encode(),
-	))
+	)
+	//partition kafka topic based on roomID
+	kafkaMessage.Metadata.Set("partition_key", strconv.FormatUint(msg.RoomID, 10))
+	return msgPub.publisher.Publish(MessagePubTopic, kafkaMessage)
 }

@@ -36,6 +36,23 @@ func NewKafkaPublisher(config *config.Config) (message.Publisher, error) {
 	return kafkaPublisher, nil
 }
 
+func NewKafkaPublisherWithPartioning(config *config.Config) (message.Publisher, error) {
+	kafkaPublisher, err := kafka.NewPublisher(
+		kafka.PublisherConfig{
+			Brokers: common.GetServerAddrs(config.Kafka.Addrs),
+			Marshaler: kafka.NewWithPartitioningMarshaler(func(topic string, msg *message.Message) (string, error) {
+				return msg.Metadata.Get("partition_key"), nil
+			}),
+		},
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return kafkaPublisher, nil
+}
+
 func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 	saramaConfig := sarama.NewConfig()
 	saramaVersion, err := sarama.ParseKafkaVersion(config.Kafka.Version)
@@ -53,7 +70,7 @@ func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 			Unmarshaler:   kafka.DefaultMarshaler{},
 			ConsumerGroup: config.Kafka.Subscriber.ConsumerGroup,
 			InitializeTopicDetails: &sarama.TopicDetail{
-				NumPartitions:     -1,
+				NumPartitions:     config.Kafka.Subscriber.NumPartitions,
 				ReplicationFactor: config.Kafka.Subscriber.ReplicationFactor,
 			},
 			OverwriteSaramaConfig: saramaConfig,

@@ -20,7 +20,7 @@ func InitializeRoomServer(name string) (*common.Server, error) {
 		common.NewObservabilityInjector,
 		infrastructure.NewCassandraSession,
 
-		infrastructure.NewKafkaPublisher,
+		infrastructure.NewKafkaPublisherWithPartioning,
 		room.NewSubscriberGrpcClient,
 
 		infrastructure.NewRedisClient,
