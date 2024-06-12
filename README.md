@@ -19,7 +19,7 @@ Real-time chat app in a highly scalable architecture.
   - with retry (Exponential backoff with jitter), timeout, and circuit breaker.
 - Graceful shutdown.
 - Observability using Prometheus for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
-- Pub/Sub using Kafka.
+- Pub/Sub using Kafka with partitioning for parallel processing.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
 - Protect create room API with distributed rate limiter using Token-Bucket Algorithm with Redis.
 - Broadcasting seen, typing, joining, and leaving events to all room members.
