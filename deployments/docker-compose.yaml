@@ -23,7 +23,7 @@ services:
   chat-room:
     build:
       context: ../
-      dockerfile: ../chatroom/build/docker/Dockerfile  
+      dockerfile: ./build/docker/Dockerfile
     restart: always
     expose:
       - 3000
