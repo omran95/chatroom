@@ -1,12 +1,12 @@
 # Chatroom
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/omran95/chat-app?label=Version&sort=semver)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/omran95/chatroom?label=Version&sort=semver)
 
 Backend for a real-time chat room app in a highly scalable architecture. 
 
 
 ### System architecture
 
-<img width="1028" alt="image" src="https://raw.githubusercontent.com/omran95/chat-app/main/architecture.png">
+<img width="1028" alt="image" src="https://raw.githubusercontent.com/omran95/chatroom/main/architecture.png">
 
 
 ### Features
