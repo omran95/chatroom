@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/omran95/chat-app/pkg/common"
+	"github.com/omran95/chatroom/pkg/common"
 	"gopkg.in/olahol/melody.v1"
 )
 

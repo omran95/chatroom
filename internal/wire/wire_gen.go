@@ -7,11 +7,11 @@
 package wire
 
 import (
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
-	"github.com/omran95/chat-app/pkg/infrastructure"
-	"github.com/omran95/chat-app/pkg/room"
-	"github.com/omran95/chat-app/pkg/subscriber"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
+	"github.com/omran95/chatroom/pkg/infrastructure"
+	"github.com/omran95/chatroom/pkg/room"
+	"github.com/omran95/chatroom/pkg/subscriber"
 )
 
 // Injectors from wire.go:

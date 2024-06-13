@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/infrastructure"
-	subscriberpb "github.com/omran95/chat-app/pkg/subscriber/proto"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/infrastructure"
+	subscriberpb "github.com/omran95/chatroom/pkg/subscriber/proto"
 	"golang.org/x/crypto/bcrypt"
 )
 

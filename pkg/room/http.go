@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
 	"github.com/redis/go-redis/v9"
 	"gopkg.in/olahol/melody.v1"
 

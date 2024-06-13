@@ -2,8 +2,8 @@ package infrastructure
 
 import (
 	"github.com/gocql/gocql"
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
 )
 
 var CassandraSession *gocql.Session

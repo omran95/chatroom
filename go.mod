@@ -1,4 +1,4 @@
-module github.com/omran95/chat-app
+module github.com/omran95/chatroom
 
 go 1.22.2
 

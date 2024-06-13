@@ -3,7 +3,7 @@ package subscriber
 import (
 	"context"
 
-	"github.com/omran95/chat-app/pkg/room"
+	"github.com/omran95/chatroom/pkg/room"
 )
 
 type SubscriberService interface {

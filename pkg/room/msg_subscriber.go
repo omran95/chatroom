@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/config"
 
 	"gopkg.in/olahol/melody.v1"
 )

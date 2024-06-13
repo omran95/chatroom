@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 

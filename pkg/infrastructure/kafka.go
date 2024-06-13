@@ -9,8 +9,8 @@ import (
 	"github.com/ThreeDotsLabs/watermill/components/metrics"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
 	prom "github.com/prometheus/client_golang/prometheus"
 )
 

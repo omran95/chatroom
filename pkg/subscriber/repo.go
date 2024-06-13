@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/omran95/chat-app/pkg/infrastructure"
+	"github.com/omran95/chatroom/pkg/infrastructure"
 )
 
 var redisPrefix = "subscriber"

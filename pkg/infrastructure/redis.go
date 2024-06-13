@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 )

@@ -1,8 +1,8 @@
 package room
 
 import (
-	"github.com/omran95/chat-app/pkg/config"
-	"github.com/omran95/chat-app/pkg/infrastructure"
+	"github.com/omran95/chatroom/pkg/config"
+	"github.com/omran95/chatroom/pkg/infrastructure"
 	"google.golang.org/grpc"
 )
 

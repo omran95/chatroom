@@ -6,11 +6,11 @@ import (
 
 	"log/slog"
 
-	"github.com/omran95/chat-app/pkg/common"
-	"github.com/omran95/chat-app/pkg/config"
-	"github.com/omran95/chat-app/pkg/infrastructure"
+	"github.com/omran95/chatroom/pkg/common"
+	"github.com/omran95/chatroom/pkg/config"
+	"github.com/omran95/chatroom/pkg/infrastructure"
 
-	subscriberpb "github.com/omran95/chat-app/pkg/subscriber/proto"
+	subscriberpb "github.com/omran95/chatroom/pkg/subscriber/proto"
 	"google.golang.org/grpc"
 )
 

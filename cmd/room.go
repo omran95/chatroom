@@ -4,7 +4,7 @@ import (
 	log "log/slog"
 	"os"
 
-	"github.com/omran95/chat-app/internal/wire"
+	"github.com/omran95/chatroom/internal/wire"
 	"github.com/spf13/cobra"
 )
 

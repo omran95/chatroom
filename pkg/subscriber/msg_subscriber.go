@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/omran95/chat-app/pkg/room"
+	"github.com/omran95/chatroom/pkg/room"
 )
 
 type MessageSubscriber struct {

@@ -3,7 +3,7 @@ package subscriber
 import (
 	"context"
 
-	"github.com/omran95/chat-app/pkg/common"
+	"github.com/omran95/chatroom/pkg/common"
 )
 
 type Router struct {

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/omran95/chat-app/pkg/common"
+	"github.com/omran95/chatroom/pkg/common"
 )
 
 func NewRateLimiterMiddleware(createRoomsrateLimiter common.RateLimiter) *RateLimiterMiddleware {
