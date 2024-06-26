@@ -64,11 +64,11 @@ func (service *RoomServiceImpl) CreateRoom(ctx context.Context, dto CreateRoomDT
 }
 
 func (service *RoomServiceImpl) RoomExist(ctx context.Context, roomID RoomID) (bool, error) {
-	room, err := service.roomRepo.RoomExist(ctx, roomID)
+	exists, err := service.roomRepo.RoomExist(ctx, roomID)
 	if err != nil {
 		return false, fmt.Errorf("error checking room existence: %w", err)
 	}
-	return room, nil
+	return exists, nil
 }
 
 func (service *RoomServiceImpl) IsRoomProtected(ctx context.Context, roomID RoomID) (bool, error) {

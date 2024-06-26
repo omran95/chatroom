@@ -5,11 +5,11 @@ global:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-    - targets: ['localhost:9090']
+      - targets: ['localhost:9090']
   
   - job_name: 'room_monitor'
     static_configs:
-    - targets: ['deployments-chat-room-1:8080','deployments-chat-room-2:8080','deployments-chat-room-3:8080']
+      - targets: ['deployments-chat-room-1:8080','deployments-chat-room-2:8080','deployments-chat-room-3:8080']
   - job_name: 'subscriber_monitor'
     static_configs:
-    - targets: ['deployments-subscriber-1:8080']
+      - targets: ['deployments-subscriber-1:8080', 'deployments-subscriber-2:8080', 'deployments-subscriber-3:8080']
