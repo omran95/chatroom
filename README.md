@@ -12,7 +12,7 @@ Backend for a real-time chat room app in a highly scalable architecture.
 ### Features
 - Real-time chatting using websockets.
 - Services **are stateless** and can be horizontally scaled.
-  - `room`: creates rooms (public & protected) and handles messages.
+  - `room`: creates rooms (public/protected) and handles messages.
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
 
 - Traefik for efficient HTTP reverse proxying and load balancing
