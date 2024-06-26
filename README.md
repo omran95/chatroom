@@ -19,7 +19,7 @@ Backend for a real-time chat room app in a highly scalable architecture.
 - gRPC for low-latency and high-throughput inter-service communication.
   - with retry (Exponential backoff with jitter), timeout, and circuit breaker.
 - Graceful shutdown.
-- Observability using Prometheus for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
+- Observability using Prometheus + Grafana for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
 - Pub/Sub using Kafka with partitioning for parallel processing.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
 - Protect the create room API with distributed rate limiting using the Token-Bucket Algorithm with Redis.
