@@ -12,14 +12,14 @@ Backend for a real-time chat room app in a highly scalable architecture.
 ### Features
 - Real-time chatting using websockets.
 - Services **are stateless** and can be horizontally scaled.
-  - `room`: creates rooms and handles messages.
+  - `room`: creates rooms (public/protected) and handles messages.
   - `subscriber`: maintains Kafka subscriber topics for each room in a Redis cluster.
 
 - Traefik for efficient HTTP reverse proxying and load balancing
 - gRPC for low-latency and high-throughput inter-service communication.
   - with retry (Exponential backoff with jitter), timeout, and circuit breaker.
 - Graceful shutdown.
-- Observability using Prometheus for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
+- Observability using Prometheus + Grafana for service monitoring and OpenTelemetry + Jaeger for distributed tracing.
 - Pub/Sub using Kafka with partitioning for parallel processing.
 - Persist messages and rooms in Cassandra, A highly available and scalable NoSQL Database with tunable consistency.
 - Protect the create room API with distributed rate limiting using the Token-Bucket Algorithm with Redis.
