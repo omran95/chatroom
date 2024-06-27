@@ -23,7 +23,6 @@ local requestedTokens = tonumber(ARGV[4])
 
 local expirationSeconds = math.floor(tonumber(ARGV[5]))
 
--- Check if timestamp key exists
 local lastRefreshTime = tonumber(redis.call("get", timestampKey))
 if lastRefreshTime == nil then
   lastRefreshTime = 0 -- Fallback for new users
@@ -38,14 +37,17 @@ local elapsedTime = math.max(0, currentTime - lastRefreshTime)
 local refillableTokens = math.min(bucketCapacity, remainingTokens + (elapsedTime * fillingRate))
 
 local allowedRequest = refillableTokens >= requestedTokens
-local remainingTokensAfterRequest = refillableTokens - requestedTokens
 
 if allowedRequest then
+  local remainingTokensAfterRequest = refillableTokens - requestedTokens
   redis.call("setex", tokenBucketKey, expirationSeconds, remainingTokensAfterRequest)
   redis.call("setex", timestampKey, expirationSeconds, currentTime)
+  return { allowedRequest, 0 }
+else
+  local tokensNeeded = math.abs(refillableTokens - requestedTokens)
+  local secondsUntilRetry = tokensNeeded / fillingRate
+  return { allowedRequest, secondsUntilRetry }
 end
-
-return { allowedRequest }
 `
 
 type RateLimiter struct {
@@ -72,20 +74,19 @@ func NewRateLimiter(redisClient redis.UniversalClient, fillingRate float64, buck
 
 }
 
-func (rateLimiter *RateLimiter) Allow(ctx context.Context, key string) (bool, error) {
-	tokensRequired := 1
+func (rateLimiter *RateLimiter) Allow(ctx context.Context, key string, tokensRequired int) (bool, int, error) {
 	formattedKey := JoinStrings(rateLimitRedisKeyPrefix, ":", key)
 	tokenBucketKey := JoinStrings("{", formattedKey, "}", ":tokens")
 	timestampKey := JoinStrings("{", formattedKey, "}", ":ts")
 
 	response, err := rateLimiter.redisClient.EvalSha(ctx, rateLimiter.scriptSHA, []string{tokenBucketKey, timestampKey}, rateLimiter.FillingRate, rateLimiter.bucketCapacity, time.Now().Unix(), tokensRequired, rateLimiter.expiration.Seconds()).Result()
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	result, _ := response.([]interface{})
-
-	return result[0] == int64(1), nil
+	retryAfter, _ := result[1].(int64)
+	return result[0] == int64(1), int(retryAfter), nil
 }
 
 func JoinStrings(strs ...string) string {

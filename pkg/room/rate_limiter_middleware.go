@@ -19,14 +19,14 @@ type RateLimiterMiddleware struct {
 func (rl *RateLimiterMiddleware) LimitCreateRooms(c *gin.Context) {
 	hostIP := c.ClientIP()
 	key := hostIP + ":create_room"
-
-	allowed, err := rl.createRoomsrateLimiter.Allow(c.Request.Context(), key)
+	tokensPerRequest := 10
+	allowed, retryAfter, err := rl.createRoomsrateLimiter.Allow(c.Request.Context(), key, tokensPerRequest)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	if !allowed {
-		c.Header("Retry-After", strconv.FormatFloat(1/rl.createRoomsrateLimiter.FillingRate, 'f', -1, 64))
+		c.Header("Retry-After", strconv.FormatInt(int64(retryAfter), 10))
 		c.AbortWithStatus(http.StatusTooManyRequests)
 		return
 	}
