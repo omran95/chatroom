@@ -59,7 +59,7 @@ func NewGinEngine(name string, logger common.HttpLog, config *config.Config) *gi
 }
 
 func NewHttpServer(name string, logger common.HttpLog, engine *gin.Engine, ws MelodyConn, config *config.Config, roomService RoomService, msgSubscriber *MessageSubscriber, redisClient redis.UniversalClient) (*HttpServer, error) {
-	// FillingRatePerRequest (RPS), bucketSize, expiration
+	// FillingRatePerSecond (RPS), bucketSize, expiration
 	createRoomsrateLimiter, err := common.NewRateLimiter(redisClient, 1, 30, 24*time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("error creating room rate limiter: %w", err)
